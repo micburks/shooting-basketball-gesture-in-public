@@ -427,8 +427,8 @@ int main(int argc, char **argv)
         }
 
         /* parent does not need connection fd */
-        //printf ("parent");
-        //close (new_fd);
+        /* printf ("parent"); */
+        /* close (new_fd); */
 
         /* i don't know what this would be
         if (for_some_reason)
@@ -462,7 +462,7 @@ struct sockaddr {
     unsigned short  sa_family;
     char            sa_data[14];
 };
-// or
+ or 
 struct sockaddr_in {
     short int           sin_family;
     unsigned short int  sin_port;
@@ -470,12 +470,12 @@ struct sockaddr_in {
     unsigned char       sin_zero[8];
 };
 
-//IPv4 only
+ IPv4 only
 struct in_addr {
     uint32_t s_addr;
 };
 
-//IPv6 only
+ IPv6 only
 struct sockaddr_in6 {
     u_int16_t       sin6_family;
     u_int16_t       sin6_port;
