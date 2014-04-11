@@ -25,6 +25,7 @@
 #include <fcntl.h>
 
 #include "send.h"
+#include "receive.h"
 #include "headers.h"
 #include "file.h"
 

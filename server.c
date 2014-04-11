@@ -47,7 +47,18 @@ void *get_in_addr(const struct sockaddr *sa)
 int connection(const int fd)
 {
 
-    char *file = "index.html";
+    req_hdrs req;
+
+    char buf[1024];
+    if (recv(fd, buf, sizeof buf, 0) == 0) {
+
+        perror("server->receive failed%s\n");
+        exit(1);
+
+    }
+
+    char *file = parse_request(buf, &req);
+    file = "index.html";
     respond(fd, file);
     close(fd);
     return 0;
@@ -88,10 +99,9 @@ int open_connection(char *port) {
      */
     for (p = servinfo; p != NULL; p = p->ai_next) {
 
-        if ((sockfd =
-             socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
 
-            perror("server->socket");
+            perror("server->socket%s\n");
             continue;
 
         }
@@ -152,7 +162,7 @@ int open_connection(char *port) {
     /*
      * all set for connection 
      */
-    printf("server: waiting for connections...\n");
+    printf("server: waiting for connections on port %s...\n", port);
 
 
     /*
@@ -175,6 +185,15 @@ int open_connection(char *port) {
               get_in_addr((struct sockaddr *) &their_addr), s,
           sizeof s);
         printf("server: got connection from %s\n", s);
+
+        /*
+        if (connect(new_fd, (struct sockaddr *)&their_addr, (int)sin_size) == -1) {
+
+            perror("server->connect failed%s\n");
+            exit(1);
+
+        }
+        */
 
         int pid = fork();
         if (pid == -1) {

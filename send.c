@@ -34,18 +34,18 @@ int respond(const int fd, const char *file)
 {
 
     resp_hdrs hdrs;
-    init_headers(&hdrs);
+    init_resp_headers(&hdrs);
 
     int file_fd = f_open(file);
     if (file_fd == -1) {
 
         fprintf(stderr, "file not found\n");
-        hdrs.status_code = "404";
+        hdrs.status_code = 404;
 
     }
     else {
 
-        hdrs.status_code = "200";
+        hdrs.status_code = 200;
 
     }
 
@@ -53,7 +53,7 @@ int respond(const int fd, const char *file)
     if (file_size == -1) {
 
         fprintf(stderr, "file size error\n");
-        hdrs.status_code = "404";
+        hdrs.status_code = 404;
 
     }
 
@@ -61,7 +61,7 @@ int respond(const int fd, const char *file)
     hdrs.last_modified = f_last_mod(file_fd);
     send_headers(fd, &hdrs);
 
-    if (strcmp(hdrs.status_code, "404") != 0) {
+    if (hdrs.status_code != 404) {
 
         send_file(fd, file_fd, file_size);
 
@@ -127,9 +127,6 @@ int send_headers(const int fd, const resp_hdrs *hdrs)
     /* HTTP/1.1 200 OK  */
     char hbuf[100] = "HTTP/";
     strcat(hbuf, hdrs->version);
-    strcat(hbuf, " ");
-    strcat(hbuf, hdrs->status_code);
-    strcat(hbuf, " ");
     strcat(hbuf, status_msg(hdrs->status_code));
     strcat(hbuf, "\r\n");
     send_msg(fd, hbuf);
@@ -162,7 +159,7 @@ int send_headers(const int fd, const resp_hdrs *hdrs)
 
     /* Last-Modified: Fri, 31 Dec 1999 23:59:59 GMT */
     char pbuf[100] = "Last-Modified: ";
-    char tbuf[20] = "";
+    char tbuf[80] = "";
     datetime(hdrs->last_modified, tbuf);
     strcat(pbuf, tbuf);
     strcat(pbuf, "\r\n\r\n");

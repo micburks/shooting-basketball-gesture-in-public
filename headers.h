@@ -10,7 +10,7 @@ typedef struct {
 
     char *version;
     char *server;
-    char *status_code;
+    int status_code;
 
     char *content_type;
     off_t content_length;
@@ -20,11 +20,30 @@ typedef struct {
 
 
 
-void init_headers(resp_hdrs *hdrs);
+typedef struct {
+
+    char *method;
+    char *resource;
+    char *version;
+
+    char *from;
+    char *user_agent;
+
+    char *msg_body;
+
+} req_hdrs;
 
 
 
-char *status_msg(const char *code);
+void init_resp_headers(resp_hdrs *resp);
+
+
+
+void init_req_headers(req_hdrs *req);
+
+
+
+char *status_msg(const int code);
 
 
 

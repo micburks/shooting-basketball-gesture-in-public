@@ -5,30 +5,46 @@
 #include "headers.h"
 
 
-void init_headers(resp_hdrs *hdrs)
+void init_resp_headers(resp_hdrs *resp)
 {
 
-    memset(hdrs, 0, sizeof *hdrs);
+    memset(resp, 0, sizeof *resp);
 
-    hdrs->version = "1.1";
-    hdrs->server = "SBGiP/0.1";
-    hdrs->content_type = "text/html";
+    resp->version = "1.1";
+    resp->server = "SBGiP/0.1";
+    resp->content_type = "text/html";
 
 }
 
 
 
-char *status_msg(const char *code)
+void init_req_headers(req_hdrs *req)
 {
 
-    if (strcmp(code, "200") == 0) {
-        return "OK";
+    memset(req, 0, sizeof *req);
+
+    /*
+    resp->version = "1.1";
+    resp->server = "SBGiP/0.1";
+    resp->content_type = "text/html";
+    */
+
+}
+
+
+
+char *status_msg(const int code)
+{
+
+    if (code == 200) {
+        return " 200 OK";
     }
-    else if (strcmp(code, "404") == 0) {
-        return "Not Found";
+    else if (code == 404) {
+        return " 404 Not Found";
     }
 
-    return "";
+    return " 500 Server Error";
+
 }
 
 

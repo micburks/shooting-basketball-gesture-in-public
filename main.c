@@ -3,7 +3,10 @@
  * main.c
  */
 
+#include <stdio.h>
+#include <stdlib.h>
 
+int open_connection();
 
 int main(int argc, char **argv)
 {
