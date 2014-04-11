@@ -6,6 +6,11 @@
 #include <time.h>
 #include <sys/types.h>
 
+
+
+/*
+ * response headers
+ */
 typedef struct {
 
     char *version;
@@ -20,9 +25,12 @@ typedef struct {
 
 
 
+/*
+ * request headers
+ */
 typedef struct {
 
-    char *method;
+    enum method;
     char *resource;
     char *version;
 
@@ -33,6 +41,18 @@ typedef struct {
 
 } req_hdrs;
 
+
+
+/*
+ * supported request methods
+ */
+enum METHOD {
+
+    GET,
+    POST,
+    HEAD
+
+};
 
 
 void init_resp_headers(resp_hdrs *resp);

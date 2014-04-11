@@ -47,17 +47,7 @@ void *get_in_addr(const struct sockaddr *sa)
 int connection(const int fd)
 {
 
-    req_hdrs req;
-
-    char buf[1024];
-    if (recv(fd, buf, sizeof buf, 0) == 0) {
-
-        perror("server->receive failed%s\n");
-        exit(1);
-
-    }
-
-    char *file = parse_request(buf, &req);
+    char *file = receive(fd);
     file = "index.html";
     respond(fd, file);
     close(fd);
@@ -146,7 +136,7 @@ int open_connection(char *port) {
     }
 
     /*
-     * reap all dead processes 
+     * reap all dead processes
      */
     sa.sa_handler = sigchld_handler;
     sigemptyset(&sa.sa_mask);
@@ -171,8 +161,7 @@ int open_connection(char *port) {
     while (1) {
 
         sin_size = sizeof their_addr;
-        new_fd =
-            accept(sockfd, (struct sockaddr *) &their_addr, &sin_size);
+        new_fd = accept(sockfd, (struct sockaddr *) &their_addr, &sin_size);
 
         if (new_fd == -1) {
 
@@ -181,19 +170,7 @@ int open_connection(char *port) {
 
         }
 
-        inet_ntop(their_addr.ss_family,
-              get_in_addr((struct sockaddr *) &their_addr), s,
-          sizeof s);
-        printf("server: got connection from %s\n", s);
-
-        /*
-        if (connect(new_fd, (struct sockaddr *)&their_addr, (int)sin_size) == -1) {
-
-            perror("server->connect failed%s\n");
-            exit(1);
-
-        }
-        */
+        inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *) &their_addr), s, sizeof s);
 
         int pid = fork();
         if (pid == -1) {
@@ -228,25 +205,14 @@ int open_connection(char *port) {
 
         else {
 
+            /*
+             * parent does not need connection fd 
+             */
             close(new_fd);
 
         }
 
-        /*
-         * parent does not need connection fd 
-         */
-        /*
-         * printf ("parent"); 
-         */
-        /*
-         * close (new_fd); 
-         */
-
-        /*
-         * i don't know what this would be if (for_some_reason) { break; } 
-         */
-
-        }
+    }
 
     close(sockfd);
     return 0;
