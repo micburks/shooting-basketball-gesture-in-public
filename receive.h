@@ -3,18 +3,35 @@
 #define SBGIP_RECEIVE_H_
 
 #include "headers.h"
+#include "file.h"
+
 
 /*
- * return -1 on error
+ * return NULL on error
  */
-int receive(const int fd, const req_hdrs *req);
+char *receive(const int fd);
+
+
+
+/*
+ * returns 1 on success, 0 on empty line, -1 on error
+ */
+int get_hdr(const int fd, const req_hdrs *req);
 
 
 
 /*
  * returns -1 on error
  */
-char *parse_request(const char *buf, const req_hdrs *req);
+int eval_hdr(const char *field, const ssize_t f_size,
+            const char *value, const ssize_t v_size,  const req_hdrs *req);
+
+
+
+/*
+ * returns NULL on error
+ */
+char *request(const req_hdrs *req)
 
 
 

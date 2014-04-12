@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 /*
  * return size of file if opened -- -1 on unopened
@@ -26,6 +27,13 @@ off_t f_size(const int file_fd);
  * return the time of last modification -- -1 on error 
  */
 time_t f_last_mod(const int file_fd);
+
+
+
+/*
+ * return 1 on accessible, 0 on not
+ */
+int f_can_read(const int file_fd);
 
 
 
