@@ -33,7 +33,7 @@ time_t f_last_mod(const int file_fd);
 /*
  * return 1 on accessible, 0 on not
  */
-int f_can_read(const int file_fd);
+int f_can_read(const char *file);
 
 
 

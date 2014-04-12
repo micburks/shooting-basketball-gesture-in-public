@@ -2,6 +2,8 @@
 #ifndef SBGIP_RECEIVE_H_
 #define SBGIP_RECEIVE_H_
 
+#include <stdlib.h>
+
 #include "headers.h"
 #include "file.h"
 
@@ -31,7 +33,7 @@ int eval_hdr(const char *field, const ssize_t f_size,
 /*
  * returns NULL on error
  */
-char *request(const req_hdrs *req)
+char *request(const req_hdrs *req);
 
 
 

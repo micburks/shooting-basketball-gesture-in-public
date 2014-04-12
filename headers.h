@@ -26,11 +26,24 @@ typedef struct {
 
 
 /*
+ * supported request methods
+ */
+typedef enum {
+
+    GET,
+    POST,
+    HEAD
+
+} method;
+
+
+
+/*
  * request headers
  */
 typedef struct {
 
-    enum method;
+    method request_method;
     char *resource;
     char *version;
 
@@ -40,19 +53,6 @@ typedef struct {
     char *msg_body;
 
 } req_hdrs;
-
-
-
-/*
- * supported request methods
- */
-enum METHOD {
-
-    GET,
-    POST,
-    HEAD
-
-};
 
 
 void init_resp_headers(resp_hdrs *resp);
