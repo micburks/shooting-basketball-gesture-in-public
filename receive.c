@@ -1,6 +1,8 @@
 
 #include "receive.h"
 
+
+
 /*
  * return NULL on error
  */
@@ -11,24 +13,19 @@ char *receive(const int fd)
     memset(&req, 0, sizeof req);
     int g;
 
-    while(1) {
+    while((g = get_hdr(fd, &req)) == 0) {
 
-        g = get_hdr(fd, &req);
         if (g == -1) {
 
-            perror("server->get_hdr%s\n");
+            perror("server->get_hdr\n");
             exit(1);
-
-        }
-        else if (g == 0) {
-
-            break;
 
         }
 
     }
 
-    char *file = request(&req);
+    //char *file = request(&req);
+    char *file = "index.html";
     if(!f_can_read(file)) {
 
         return "index.html";
@@ -48,10 +45,10 @@ int get_hdr(const int fd, const req_hdrs *req)
 {
 
     ssize_t r;
-    ssize_t size;
-    char buf[20];
-    char (*field)[20];
-    char (*value)[20];
+    ssize_t size = 0;
+    char buf[1];
+    char field[20];
+    char value[20];
 
     if ((r = read(fd, buf, sizeof(char))) == 0) {
 
@@ -59,7 +56,10 @@ int get_hdr(const int fd, const req_hdrs *req)
 
     }
 
-    while (r = read(fd, &buf, sizeof(char))) {
+    char *buffer = field;
+    buffer[size] = buf[0];
+
+    while ((r = read(fd, &buf, sizeof(char))) != 0) {
 
         if(r == -1) {
 
@@ -67,13 +67,41 @@ int get_hdr(const int fd, const req_hdrs *req)
 
         }
 
-        else if(r == 0) {
+        if (buf[0] == ':') {
 
-            break;
+            buffer = value;
+            size = 0;
+            continue;
 
         }
 
-        ++size;
+        else if (buf[0] == '\r') {
+
+            if ((r = read(fd, &buf, sizeof(char))) != 0) {
+
+                if (buf[0] == '\n') {
+
+                    break;
+
+                }
+
+            }
+
+        }
+
+        else {
+
+            ++size;
+            if (size >= sizeof(buffer) / sizeof(buffer[0])) {
+
+                char temp[size * 2];
+                buffer = &(temp[0]);
+                buffer[size] = buf[0];
+                continue;
+
+            }
+
+        }
 
     }
 
@@ -90,7 +118,7 @@ int eval_hdr(const char *field, const ssize_t f_size,
             const char *value, const ssize_t v_size,  const req_hdrs *req)
 {
 
-    return -1;
+    return 1;
 
 }
 

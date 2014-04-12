@@ -69,14 +69,15 @@ time_t f_last_mod(const int file_fd)
  */
 int f_can_read(const char *file) {
 
-    if (access(file, R_OK) != -1) {
+    if (access(file, R_OK) == 0) {
 
         return 1;
 
     }
+
     else {
 
-        perror("server->cannot access file%s\n");
+        perror("server->cannot access file\n");
         return 0;
 
     }
