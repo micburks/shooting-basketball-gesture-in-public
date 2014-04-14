@@ -18,22 +18,22 @@ char *receive(const int fd);
 /*
  * returns 1 on success, 0 on empty line, -1 on error
  */
-int get_hdr(const int fd, const req_hdrs *req);
+int get_hdr(const int fd, req_hdrs *req);
 
 
 
 /*
  * returns -1 on error
  */
-int eval_hdr(const char *field, const ssize_t f_size,
-            const char *value, const ssize_t v_size,  const req_hdrs *req);
+int eval_hdr(char *field, ssize_t f_size,
+            char *value, ssize_t v_size,  req_hdrs *req);
 
 
 
 /*
  * returns NULL on error
  */
-char *request(const req_hdrs *req);
+int request(req_hdrs *req);
 
 
 

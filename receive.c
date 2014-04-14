@@ -13,6 +13,9 @@ char *receive(const int fd)
     memset(&req, 0, sizeof req);
     int g;
 
+    /* get request line first */
+
+    /* get all header lines */
     while((g = get_hdr(fd, &req)) == 0) {
 
         if (g == -1) {
@@ -24,15 +27,15 @@ char *receive(const int fd)
 
     }
 
-    //char *file = request(&req);
-    char *file = "index.html";
-    if(!f_can_read(file)) {
+    print_hdrs(&req);
 
-        return "index.html";
+    if (request(&req) == -1) {
+
+        return NULL;
 
     }
 
-    return file;
+    return req.resource;
 
 }
 
@@ -41,7 +44,7 @@ char *receive(const int fd)
 /*
  * returns 1 on success, 0 on empty line, -1 on error
  */
-int get_hdr(const int fd, const req_hdrs *req)
+int get_hdr(const int fd, req_hdrs *req)
 {
 
     ssize_t r;
@@ -105,7 +108,7 @@ int get_hdr(const int fd, const req_hdrs *req)
 
     }
 
-    return eval_hdr(&field, sizeof field, &value, sizeof value, req);
+    return eval_hdr(field, sizeof field, value, sizeof value, req);
 
 }
 
@@ -114,23 +117,136 @@ int get_hdr(const int fd, const req_hdrs *req)
 /*
  * returns -1 on error
  */
-int eval_hdr(const char *field, const ssize_t f_size,
-            const char *value, const ssize_t v_size,  const req_hdrs *req)
+int eval_hdr(char *field, ssize_t f_size,
+            char *value, ssize_t v_size,  req_hdrs *req)
 {
 
-    return 1;
+    switch (f_size) {
+
+        case 4:
+            if (strcmp(field, "Host")) {
+
+                req->host = value;
+                return 0;
+
+            }
+
+            else if (strcmp(field, "From")) {
+
+                req->from = value;
+                return 0;
+
+            }
+
+            break;
+
+        case 6:
+
+            if (strcmp(field, "Accept")) {
+
+                req->accept = value;
+                return 0;
+
+            }
+
+            else if (strcmp(field, "Cookie")) {
+
+                req->cookie = value;
+                return 0;
+
+            }
+
+            break;
+
+        case 10:
+
+            if (strcmp(field, "User-Agent")) {
+
+                req->user_agent = value;
+                return 0;
+
+            }
+
+            else if (strcmp(field, "Connection")) {
+
+                req->connection = value;
+                return 0;
+
+            }
+
+            break;
+
+        case 13:
+
+            if (strcmp(field, "Cache-Control")) {
+
+                req->cache_control = value;
+                return 0;
+
+            }
+
+            break;
+
+        case 15:
+
+            if (strcmp(field, "Accept-Encoding")) {
+
+                req->accept_encoding = value;
+                return 0;
+
+            }
+
+            else if (strcmp(field, "Accept-Language")) {
+
+                req->accept_language = value;
+                return 0;
+
+            }
+
+            break;
+
+        default:
+
+            break;
+
+    }
+
+    return -1;
 
 }
 
 
 
 /*
- * returns NULL on error
+ * check accessibility of file
+ * returns -1 on error
  */
-char *request(const req_hdrs *req)
+int request(req_hdrs *req)
 {
 
-    return NULL;
+    if (*(req->resource) == '/') {
+
+        req->resource = "index.html";
+        return 0;
+
+    }
+
+    else if(!f_can_read(req->resource)) {
+
+        req->resource = "index.html";
+        return 0;
+
+    }
+
+    else {
+
+        return 1;
+
+    }
+
+    /* not sure when to return error */
+    /* probably when requesting a file outside of root server folder */
+    return -1;
 
 }
 

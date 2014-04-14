@@ -159,7 +159,7 @@ int send_headers(const int fd, const resp_hdrs *hdrs)
 
     /* Last-Modified: Fri, 31 Dec 1999 23:59:59 GMT */
     char pbuf[100] = "Last-Modified: ";
-    char tbuf[80] = "";
+    char tbuf[30];
     datetime(hdrs->last_modified, tbuf);
     strcat(pbuf, tbuf);
     strcat(pbuf, "\r\n\r\n");
