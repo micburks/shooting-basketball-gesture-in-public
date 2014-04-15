@@ -14,28 +14,52 @@ char *receive(const int fd)
     int g;
 
     /* get request line first */
+    g = get_request_line(fd, &req);
+    if (g < 0) {
+
+        perror("server->get_hdr\n");
+        exit(1);
+
+    }
 
     /* get all header lines */
-    while((g = get_hdr(fd, &req)) == 0) {
+    /* empty while */
+    while((g = get_hdr(fd, &req)) >= 0) {}
+    if (g < 0) {
 
-        if (g == -1) {
-
-            perror("server->get_hdr\n");
-            exit(1);
-
-        }
+        perror("server->get_hdr\n");
+        exit(1);
 
     }
 
     print_hdrs(&req);
 
-    if (request(&req) == -1) {
+    if (request(&req) < 0) {
 
         return NULL;
 
     }
 
     return req.resource;
+
+}
+
+
+
+/*
+ * returns 1 on success, 0 on empty line, -1 on error
+ */
+int get_request_line(const int fd, req_hdrs *req)
+{
+
+    char blank = ' ';
+    char *method;
+    read_until(fd, &blank, method);
+    set_method(method, &req);
+    read_until(fd, &blank, req->resource);
+    read_until(fd, &blank, req->version);
+
+    return 0;
 
 }
 
@@ -115,12 +139,78 @@ int get_hdr(const int fd, req_hdrs *req)
 
 
 /*
+ * returns 1 on success, 0 on empty line, -1 on error
+ */
+int read_until(const int fd, const char *c, char *buffer)
+{
+
+    ssize_t r;
+    ssize_t size = 0;
+    char buf[1];
+    buffer = malloc(sizeof(char) * 20);
+
+    while ((r = read(fd, &buf, sizeof(char))) != 0) {
+
+        if(r == -1) {
+
+            return -1;
+
+        }
+
+        if (buf[0] == *c) {
+
+            return 0;
+
+        }
+
+        else if (buf[0] == '\r') {
+
+            if ((r = read(fd, &buf, sizeof(char))) != 0) {
+
+                if (buf[0] == '\n') {
+
+                    return 0;
+
+                }
+
+            }
+
+        }
+
+        else {
+
+            ++size;
+            if (size >= sizeof(buffer) / sizeof(buffer[0])) {
+
+                if (realloc(buffer, size * 2) < 0) {
+
+                    exit(0);
+
+                }
+
+            }
+
+            buffer[size] = buf[0];
+
+        }
+
+    }
+
+
+    return 0;
+
+}
+
+
+
+/*
  * returns -1 on error
  */
 int eval_hdr(char *field, ssize_t f_size,
             char *value, ssize_t v_size,  req_hdrs *req)
 {
 
+    printf("%d\n", (int)f_size);
     switch (f_size) {
 
         case 4:
@@ -224,7 +314,7 @@ int eval_hdr(char *field, ssize_t f_size,
 int request(req_hdrs *req)
 {
 
-    if (*(req->resource) == '/') {
+    if ((req->resource)[0] == '/') {
 
         req->resource = "index.html";
         return 0;

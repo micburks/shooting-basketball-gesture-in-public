@@ -119,6 +119,10 @@ void datetime(const time_t time, char *buf);
 
 
 
+int set_method(char *method, req_hdrs *req);
+
+
+
 char *string_method(const req_hdrs *req);
 
 

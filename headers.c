@@ -54,7 +54,33 @@ void datetime(const time_t time, char *buf)
 
 
 
-char *string_method(const req_hdrs *req) {
+int set_method(char *method, req_hdrs *req)
+{
+
+    if(strcmp(method, "GET")) {
+
+        return req->request_method = GET;
+
+    }
+    else if(strcmp(method, "POST")) {
+
+        return req->request_method = POST;
+
+    }
+    else if(strcmp(method, "HEAD")) {
+
+        return req->request_method = HEAD;
+
+    }
+
+    return 0;
+
+}
+
+
+
+char *string_method(const req_hdrs *req)
+{
 
     if(req->request_method == GET) {
 
