@@ -9,10 +9,12 @@
 char *receive(const int fd)
 {
 
+    printf("yo receive");
     req_hdrs req;
     memset(&req, 0, sizeof req);
     int g;
 
+    printf("about to get request line");
     /* get request line first */
     g = get_request_line(fd, &req);
     if (g < 0) {
@@ -22,6 +24,7 @@ char *receive(const int fd)
 
     }
 
+    printf("about to get get hdrs");
     /* get all header lines */
     /* empty while */
     while((g = get_hdr(fd, &req)) >= 0) {}
@@ -31,6 +34,7 @@ char *receive(const int fd)
 
     }
 
+    printf("about to print hdrs");
     print_hdrs(&req);
 
     if (request(&req) < 0) {
@@ -104,7 +108,7 @@ int read_until(const int fd, const char *c, char *buffer)
 
         if (ch == *c) {
 
-            return 0;
+            break;
 
         }
 
@@ -114,7 +118,7 @@ int read_until(const int fd, const char *c, char *buffer)
 
                 if (ch == '\n') {
 
-                    return 0;
+                    break;
 
                 }
 
@@ -141,6 +145,18 @@ int read_until(const int fd, const char *c, char *buffer)
 
     }
 
+    if(size >= (sizeof(buffer) / sizeof(char))) {
+
+        if((buffer = realloc(buffer, size + 1)) < 0) {
+
+            exit(0);
+
+        }
+
+    }
+
+    ++size;
+    buffer[size] = '\0';
 
     return 0;
 
@@ -213,8 +229,9 @@ int read_until_eol(const int fd, char *buffer)
 int eval_hdr(char *field, char *value, req_hdrs *req)
 {
 
-    printf("%d\n", (int)f_size);
-    switch ((int)f_size) {
+    int f_size = (int)strlen(field);
+    printf("%d\n", f_size);
+    switch (f_size) {
 
         case 4:
             if (strcmp(field, "Host")) {
