@@ -59,17 +59,20 @@ int set_method(char *method, req_hdrs *req)
 
     if(strcmp(method, "GET")) {
 
-        return req->request_method = GET;
+        req->request_method = GET;
+        return 1;
 
     }
     else if(strcmp(method, "POST")) {
 
-        return req->request_method = POST;
+        req->request_method = POST;
+        return 1;
 
     }
     else if(strcmp(method, "HEAD")) {
 
-        return req->request_method = HEAD;
+        req->request_method = HEAD;
+        return 1;
 
     }
 

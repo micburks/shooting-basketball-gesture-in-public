@@ -27,8 +27,7 @@ char *receive(const int fd)
     while((g = get_hdr(fd, &req)) >= 0) {}
     if (g < 0) {
 
-        perror("server->get_hdr\n");
-        exit(1);
+        fprintf(stderr, "server: get_hdr\n");
 
     }
 
@@ -53,9 +52,9 @@ int get_request_line(const int fd, req_hdrs *req)
 {
 
     char blank = ' ';
-    char *method;
+    char *method = NULL;
     read_until(fd, &blank, method);
-    set_method(method, &req);
+    set_method(method, req);
     read_until(fd, &blank, req->resource);
     read_until(fd, &blank, req->version);
 
@@ -71,68 +70,14 @@ int get_request_line(const int fd, req_hdrs *req)
 int get_hdr(const int fd, req_hdrs *req)
 {
 
-    ssize_t r;
-    ssize_t size = 0;
-    char buf[1];
-    char field[20];
-    char value[20];
+    char semicolon = ':';
+    char *field = NULL;
+    char *value = NULL;
 
-    if ((r = read(fd, buf, sizeof(char))) == 0) {
+    read_until(fd, &semicolon, field);
+    read_until_eol(fd, value);
 
-        return 0;
-
-    }
-
-    char *buffer = field;
-    buffer[size] = buf[0];
-
-    while ((r = read(fd, &buf, sizeof(char))) != 0) {
-
-        if(r == -1) {
-
-            return -1;
-
-        }
-
-        if (buf[0] == ':') {
-
-            buffer = value;
-            size = 0;
-            continue;
-
-        }
-
-        else if (buf[0] == '\r') {
-
-            if ((r = read(fd, &buf, sizeof(char))) != 0) {
-
-                if (buf[0] == '\n') {
-
-                    break;
-
-                }
-
-            }
-
-        }
-
-        else {
-
-            ++size;
-            if (size >= sizeof(buffer) / sizeof(buffer[0])) {
-
-                char temp[size * 2];
-                buffer = &(temp[0]);
-                buffer[size] = buf[0];
-                continue;
-
-            }
-
-        }
-
-    }
-
-    return eval_hdr(field, sizeof field, value, sizeof value, req);
+    return eval_hdr(field, value, req);
 
 }
 
@@ -146,10 +91,10 @@ int read_until(const int fd, const char *c, char *buffer)
 
     ssize_t r;
     ssize_t size = 0;
-    char buf[1];
+    char ch;
     buffer = malloc(sizeof(char) * 20);
 
-    while ((r = read(fd, &buf, sizeof(char))) != 0) {
+    while ((r = read(fd, &ch, sizeof(char))) != 0) {
 
         if(r == -1) {
 
@@ -157,17 +102,17 @@ int read_until(const int fd, const char *c, char *buffer)
 
         }
 
-        if (buf[0] == *c) {
+        if (ch == *c) {
 
             return 0;
 
         }
 
-        else if (buf[0] == '\r') {
+        else if (ch == '\r') {
 
-            if ((r = read(fd, &buf, sizeof(char))) != 0) {
+            if ((r = read(fd, &ch, sizeof(char))) != 0) {
 
-                if (buf[0] == '\n') {
+                if (ch == '\n') {
 
                     return 0;
 
@@ -180,9 +125,9 @@ int read_until(const int fd, const char *c, char *buffer)
         else {
 
             ++size;
-            if (size >= sizeof(buffer) / sizeof(buffer[0])) {
+            if (size >= sizeof(buffer) / sizeof(char)) {
 
-                if (realloc(buffer, size * 2) < 0) {
+                if ((buffer = realloc(buffer, size * 2)) < 0) {
 
                     exit(0);
 
@@ -190,7 +135,66 @@ int read_until(const int fd, const char *c, char *buffer)
 
             }
 
-            buffer[size] = buf[0];
+            buffer[size] = ch;
+
+        }
+
+    }
+
+
+    return 0;
+
+}
+
+
+
+/*
+ * returns 1 on success, 0 on empty line, -1 on error
+ */
+int read_until_eol(const int fd, char *buffer)
+{
+
+    ssize_t r;
+    ssize_t size = 0;
+    char ch;
+    buffer = malloc(sizeof(char) * 20);
+
+    while ((r = read(fd, &ch, sizeof(char))) != 0) {
+
+        if(r == -1) {
+
+            return -1;
+
+        }
+
+        if (ch == '\r') {
+
+            if ((r = read(fd, &ch, sizeof(char))) != 0) {
+
+                if (ch == '\n') {
+
+                    return 0;
+
+                }
+
+            }
+
+        }
+
+        else {
+
+            ++size;
+            if (size >= sizeof(buffer) / sizeof(char)) {
+
+                if ((buffer = realloc(buffer, size * 2)) < 0) {
+
+                    exit(0);
+
+                }
+
+            }
+
+            buffer[size] = ch;
 
         }
 
@@ -206,12 +210,11 @@ int read_until(const int fd, const char *c, char *buffer)
 /*
  * returns -1 on error
  */
-int eval_hdr(char *field, ssize_t f_size,
-            char *value, ssize_t v_size,  req_hdrs *req)
+int eval_hdr(char *field, char *value, req_hdrs *req)
 {
 
     printf("%d\n", (int)f_size);
-    switch (f_size) {
+    switch ((int)f_size) {
 
         case 4:
             if (strcmp(field, "Host")) {
@@ -309,21 +312,27 @@ int eval_hdr(char *field, ssize_t f_size,
 
 /*
  * check accessibility of file
- * returns -1 on error
+ * returns 1 on unchanged, 0 on changed to index.html, -1 on error
  */
 int request(req_hdrs *req)
 {
 
     if ((req->resource)[0] == '/') {
 
-        req->resource = "index.html";
+        char *index = "index.html";
+        free(req->resource);
+        req->resource = calloc(strlen(index)+1, sizeof(char));
+        strcpy(req->resource, index);
         return 0;
 
     }
 
     else if(!f_can_read(req->resource)) {
 
-        req->resource = "index.html";
+        char *index = "index.html";
+        free(req->resource);
+        req->resource = calloc(strlen(index)+1, sizeof(char));
+        strcpy(req->resource, index);
         return 0;
 
     }

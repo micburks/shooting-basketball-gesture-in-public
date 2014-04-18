@@ -48,7 +48,7 @@ int connection(const int fd)
 {
 
     char *file = receive(fd);
-    file = "index.html";
+    //file = "index.html";
     respond(fd, file);
     close(fd);
     return 0;

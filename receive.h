@@ -37,10 +37,16 @@ int read_until(const int fd, const char *c, char *buffer);
 
 
 /*
+ * returns 1 on success, 0 on empty line, -1 on error
+ */
+int read_until_eol(const int fd, char *buffer);
+
+
+
+/*
  * returns -1 on error
  */
-int eval_hdr(char *field, ssize_t f_size,
-            char *value, ssize_t v_size,  req_hdrs *req);
+int eval_hdr(char *field, char *value, req_hdrs *req);
 
 
 
