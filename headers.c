@@ -57,18 +57,26 @@ void datetime(const time_t time, char *buf)
 int set_method(char *method, req_hdrs *req)
 {
 
-    if(strcmp(method, "GET") == 0) {
+    if(method == NULL) {
+
+        req->request_method = FAIL;
+
+    }
+
+    else if(strcmp(method, "GET") == 0) {
 
         req->request_method = GET;
         return 1;
 
     }
+
     else if(strcmp(method, "POST") == 0) {
 
         req->request_method = POST;
         return 1;
 
     }
+
     else if(strcmp(method, "HEAD") == 0) {
 
         req->request_method = HEAD;

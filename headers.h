@@ -33,7 +33,8 @@ typedef enum {
 
     GET,
     POST,
-    HEAD
+    HEAD,
+    FAIL
 
 } method;
 

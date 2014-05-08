@@ -9,12 +9,10 @@
 char *receive(const int fd)
 {
 
-    printf("yo receive");
     req_hdrs req;
     memset(&req, 0, sizeof req);
     int g;
 
-    printf("about to get request line");
     /* get request line first */
     g = get_request_line(fd, &req);
     if (g < 0) {
@@ -24,7 +22,6 @@ char *receive(const int fd)
 
     }
 
-    printf("about to get get hdrs");
     /* get all header lines */
     /* empty while */
     while((g = get_hdr(fd, &req)) >= 0) {}
@@ -34,7 +31,6 @@ char *receive(const int fd)
 
     }
 
-    printf("about to print hdrs");
     print_hdrs(&req);
 
     if (request(&req) < 0) {
@@ -224,27 +220,33 @@ int read_until_eol(const int fd, char *buffer)
 
 
 /*
- * returns -1 on error
+ * returns 1 on successfully evaluated, 0 on not found
  */
 int eval_hdr(char *field, char *value, req_hdrs *req)
 {
+
+    if(field == NULL) {
+
+        return -1;
+
+    }
 
     int f_size = (int)strlen(field);
     printf("%d\n", f_size);
     switch (f_size) {
 
         case 4:
-            if (strcmp(field, "Host")) {
+            if (strcmp(field, "Host") == 0) {
 
                 req->host = value;
-                return 0;
+                return 1;
 
             }
 
-            else if (strcmp(field, "From")) {
+            else if (strcmp(field, "From") == 0) {
 
                 req->from = value;
-                return 0;
+                return 1;
 
             }
 
@@ -252,17 +254,17 @@ int eval_hdr(char *field, char *value, req_hdrs *req)
 
         case 6:
 
-            if (strcmp(field, "Accept")) {
+            if (strcmp(field, "Accept") == 0) {
 
                 req->accept = value;
-                return 0;
+                return 1;
 
             }
 
-            else if (strcmp(field, "Cookie")) {
+            else if (strcmp(field, "Cookie") == 0) {
 
                 req->cookie = value;
-                return 0;
+                return 1;
 
             }
 
@@ -270,17 +272,17 @@ int eval_hdr(char *field, char *value, req_hdrs *req)
 
         case 10:
 
-            if (strcmp(field, "User-Agent")) {
+            if (strcmp(field, "User-Agent") == 0) {
 
                 req->user_agent = value;
-                return 0;
+                return 1;
 
             }
 
-            else if (strcmp(field, "Connection")) {
+            else if (strcmp(field, "Connection") == 0) {
 
                 req->connection = value;
-                return 0;
+                return 1;
 
             }
 
@@ -288,10 +290,10 @@ int eval_hdr(char *field, char *value, req_hdrs *req)
 
         case 13:
 
-            if (strcmp(field, "Cache-Control")) {
+            if (strcmp(field, "Cache-Control") == 0) {
 
                 req->cache_control = value;
-                return 0;
+                return 1;
 
             }
 
@@ -299,17 +301,17 @@ int eval_hdr(char *field, char *value, req_hdrs *req)
 
         case 15:
 
-            if (strcmp(field, "Accept-Encoding")) {
+            if (strcmp(field, "Accept-Encoding") == 0) {
 
                 req->accept_encoding = value;
-                return 0;
+                return 1;
 
             }
 
-            else if (strcmp(field, "Accept-Language")) {
+            else if (strcmp(field, "Accept-Language") == 0) {
 
                 req->accept_language = value;
-                return 0;
+                return 1;
 
             }
 
@@ -321,7 +323,7 @@ int eval_hdr(char *field, char *value, req_hdrs *req)
 
     }
 
-    return -1;
+    return 0;
 
 }
 
@@ -334,7 +336,13 @@ int eval_hdr(char *field, char *value, req_hdrs *req)
 int request(req_hdrs *req)
 {
 
-    if ((req->resource)[0] == '/') {
+    if (req->resource == NULL) {
+
+        return -1;
+
+    }
+
+    else if ((req->resource)[0] == '/') {
 
         char *index = "index.html";
         free(req->resource);

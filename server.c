@@ -47,9 +47,7 @@ void *get_in_addr(const struct sockaddr *sa)
 int connection(const int fd)
 {
 
-    printf("about to receive fd");
     char *file = receive(fd);
-    //file = "index.html";
     respond(fd, file);
     close(fd);
     return 0;
@@ -190,12 +188,11 @@ int open_connection(char *port) {
             /*
              * child does not need socket 
              */
-            //close(sockfd);
+            close(sockfd);
 
             /*
              * apply communication loop 
              */
-            printf("before connection");
             connection(new_fd);
 
             /*
@@ -210,7 +207,8 @@ int open_connection(char *port) {
             /*
              * parent does not need connection fd 
              */
-            //close(new_fd);
+            printf("parent");
+            close(new_fd);
 
         }
 

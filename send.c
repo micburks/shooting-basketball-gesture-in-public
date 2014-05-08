@@ -35,31 +35,48 @@ int respond(const int fd, const char *file)
 
     resp_hdrs hdrs;
     init_resp_headers(&hdrs);
+    int file_fd;
+    off_t file_size;
 
-    int file_fd = f_open(file);
-    if (file_fd == -1) {
+    if (file == NULL) {
 
-        fprintf(stderr, "file not found\n");
+        fprintf(stderr, "file not specified\n");
         hdrs.status_code = 404;
 
     }
+
     else {
 
-        hdrs.status_code = 200;
+        file_fd = f_open(file);
+        if (file_fd == -1) {
+
+            fprintf(stderr, "file not found\n");
+            hdrs.status_code = 404;
+
+        }
+        else {
+
+            hdrs.status_code = 200;
+
+        }
+
+        file_size = f_size(file_fd);
+        if (file_size == -1) {
+
+            fprintf(stderr, "file size error\n");
+            hdrs.status_code = 404;
+
+        }
 
     }
 
-    off_t file_size = f_size(file_fd);
-    if (file_size == -1) {
+    if (file != NULL) {
 
-        fprintf(stderr, "file size error\n");
-        hdrs.status_code = 404;
+        hdrs.content_length = file_size;
+        hdrs.last_modified = f_last_mod(file_fd);
+        send_headers(fd, &hdrs);
 
     }
-
-    hdrs.content_length = file_size;
-    hdrs.last_modified = f_last_mod(file_fd);
-    send_headers(fd, &hdrs);
 
     if (hdrs.status_code != 404) {
 
