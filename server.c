@@ -183,7 +183,7 @@ int open_connection(char *port) {
         /*
          * this is child process 
          */
-        else if (pid == 0) {
+        else if (pid != 0) {
 
             /*
              * child does not need socket 

@@ -17,13 +17,14 @@ char *receive(const int fd)
     g = get_request_line(fd, &req);
     if (g < 0) {
 
-        perror("server->get_hdr\n");
+        perror("server->get_request_line\n");
         exit(1);
 
     }
 
     /* get all header lines */
     /* empty while */
+    /*
     while((g = get_hdr(fd, &req)) >= 0) {}
     if (g < 0) {
 
@@ -40,6 +41,9 @@ char *receive(const int fd)
     }
 
     return req.resource;
+    */
+    char *file = "index.html";
+    return file;
 
 }
 
@@ -53,10 +57,10 @@ int get_request_line(const int fd, req_hdrs *req)
 
     char blank = ' ';
     char *method = NULL;
-    read_until(fd, &blank, method);
+    read_until(fd, &blank, &method);
     set_method(method, req);
-    read_until(fd, &blank, req->resource);
-    read_until(fd, &blank, req->version);
+    read_until(fd, &blank, &req->resource);
+    read_until(fd, &blank, &req->version);
 
     return 0;
 
@@ -74,8 +78,8 @@ int get_hdr(const int fd, req_hdrs *req)
     char *field = NULL;
     char *value = NULL;
 
-    read_until(fd, &semicolon, field);
-    read_until_eol(fd, value);
+    read_until(fd, &semicolon, &field);
+    read_until_eol(fd, &value);
 
     return eval_hdr(field, value, req);
 
@@ -86,13 +90,13 @@ int get_hdr(const int fd, req_hdrs *req)
 /*
  * returns 1 on success, 0 on empty line, -1 on error
  */
-int read_until(const int fd, const char *c, char *buffer)
+int read_until(const int fd, const char *c, char **buffer)
 {
 
     ssize_t r;
     ssize_t size = 0;
     char ch;
-    buffer = malloc(sizeof(char) * 20);
+    *buffer = malloc(sizeof(char) * 20);
 
     while ((r = read(fd, &ch, sizeof(char))) != 0) {
 
@@ -124,10 +128,9 @@ int read_until(const int fd, const char *c, char *buffer)
 
         else {
 
-            ++size;
-            if (size >= sizeof(buffer) / sizeof(char)) {
+            if (size >= sizeof(*buffer) / sizeof(char)) {
 
-                if ((buffer = realloc(buffer, size * 2)) < 0) {
+                if ((*buffer = realloc(*buffer, size * 2)) < 0) {
 
                     exit(0);
 
@@ -135,15 +138,16 @@ int read_until(const int fd, const char *c, char *buffer)
 
             }
 
-            buffer[size] = ch;
+            *buffer[size] = ch;
+            ++size;
 
         }
 
     }
 
-    if(size >= (sizeof(buffer) / sizeof(char))) {
+    if(size >= (sizeof(*buffer) / sizeof(char))) {
 
-        if((buffer = realloc(buffer, size + 1)) < 0) {
+        if((*buffer = realloc(*buffer, size + 1)) < 0) {
 
             exit(0);
 
@@ -151,8 +155,7 @@ int read_until(const int fd, const char *c, char *buffer)
 
     }
 
-    ++size;
-    buffer[size] = '\0';
+    *buffer[size] = '\0';
 
     return 0;
 
@@ -163,13 +166,15 @@ int read_until(const int fd, const char *c, char *buffer)
 /*
  * returns 1 on success, 0 on empty line, -1 on error
  */
-int read_until_eol(const int fd, char *buffer)
+int read_until_eol(const int fd, char **buffer)
 {
 
     ssize_t r;
     ssize_t size = 0;
     char ch;
-    buffer = malloc(sizeof(char) * 20);
+    *buffer = malloc(sizeof(char) * 20);
+    strcpy(*buffer, "anyString");
+    return 1;
 
     while ((r = read(fd, &ch, sizeof(char))) != 0) {
 
@@ -195,10 +200,9 @@ int read_until_eol(const int fd, char *buffer)
 
         else {
 
-            ++size;
             if (size >= sizeof(buffer) / sizeof(char)) {
 
-                if ((buffer = realloc(buffer, size * 2)) < 0) {
+                if ((*buffer = realloc(*buffer, size * 2)) < 0) {
 
                     exit(0);
 
@@ -206,12 +210,24 @@ int read_until_eol(const int fd, char *buffer)
 
             }
 
-            buffer[size] = ch;
+            *buffer[size] = ch;
+            ++size;
 
         }
 
     }
 
+    if(size >= (sizeof(*buffer) / sizeof(char))) {
+
+        if((*buffer = realloc(*buffer, size + 1)) < 0) {
+
+            exit(0);
+
+        }
+
+    }
+
+    *buffer[size] = '\0';
 
     return 0;
 
@@ -232,7 +248,7 @@ int eval_hdr(char *field, char *value, req_hdrs *req)
     }
 
     int f_size = (int)strlen(field);
-    printf("%d\n", f_size);
+    /*printf("%d\n", f_size);*/
     switch (f_size) {
 
         case 4:
