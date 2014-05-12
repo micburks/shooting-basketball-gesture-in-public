@@ -58,7 +58,7 @@ int get_request_line(const int fd, req_hdrs *req)
     char blank = ' ';
     char *method = NULL;
     read_until(fd, &blank, &method);
-    set_method(method, req);
+    //set_method(method, req);
     read_until(fd, &blank, &req->resource);
     read_until(fd, &blank, &req->version);
 
@@ -88,20 +88,29 @@ int get_hdr(const int fd, req_hdrs *req)
 
 
 /*
- * returns 1 on success, 0 on empty line, -1 on error
+ * returns size of buffer on success, 0 on empty line, -1 on error
  */
 int read_until(const int fd, const char *c, char **buffer)
 {
 
     ssize_t r;
-    ssize_t size = 0;
+    int count = 0;
+    int size = 20;
+    const int max = 80;
     char ch;
-    *buffer = malloc(sizeof(char) * 20);
+    *buffer = malloc(sizeof(char) * size);
+
+    if (*buffer == NULL) {
+
+        return -1;
+
+    }
 
     while ((r = read(fd, &ch, sizeof(char))) != 0) {
 
         if(r == -1) {
 
+            perror ("server-> read_until");
             return -1;
 
         }
@@ -114,7 +123,7 @@ int read_until(const int fd, const char *c, char **buffer)
 
         else if (ch == '\r') {
 
-            if ((r = read(fd, &ch, sizeof(char))) != 0) {
+            if ((r = read(fd, &ch, sizeof(char))) == 1) {
 
                 if (ch == '\n') {
 
@@ -128,36 +137,47 @@ int read_until(const int fd, const char *c, char **buffer)
 
         else {
 
-            if (size >= sizeof(*buffer) / sizeof(char)) {
+            if (count >= max) {
 
-                if ((*buffer = realloc(*buffer, size * 2)) < 0) {
+                break;
 
-                    exit(0);
+            }
+
+            if (count >= size) {
+
+                size = (count * 2) > max ? max : count * 2;
+                *buffer = realloc(*buffer, sizeof(char) * size);
+
+                if (*buffer == NULL) {
+
+                    return -1;
 
                 }
 
             }
 
-            *buffer[size] = ch;
-            ++size;
+            /**buffer[count] = ch;*/
+            ++count;
 
         }
 
     }
 
-    if(size >= (sizeof(*buffer) / sizeof(char))) {
+    if(count >= size) {
 
-        if((*buffer = realloc(*buffer, size + 1)) < 0) {
+        ++size;
+        *buffer = realloc(*buffer, sizeof(char) * size);
+        if (*buffer == NULL) {
 
-            exit(0);
+            return -1;
 
         }
 
     }
 
-    *buffer[size] = '\0';
+    *buffer[count] = '\0';
 
-    return 0;
+    return count;
 
 }
 
