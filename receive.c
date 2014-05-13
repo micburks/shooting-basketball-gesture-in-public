@@ -24,13 +24,7 @@ char *receive(const int fd)
 
     /* get all header lines */
     /* empty while */
-    /*
     while((g = get_hdr(fd, &req)) >= 0) {}
-    if (g < 0) {
-
-        fprintf(stderr, "server: get_hdr\n");
-
-    }
 
     print_hdrs(&req);
 
@@ -41,9 +35,6 @@ char *receive(const int fd)
     }
 
     return req.resource;
-    */
-    char *file = "index.html";
-    return file;
 
 }
 
@@ -58,7 +49,7 @@ int get_request_line(const int fd, req_hdrs *req)
     char blank = ' ';
     char *method = NULL;
     read_until(fd, &blank, &method);
-    //set_method(method, req);
+    set_method(method, req);
     read_until(fd, &blank, &req->resource);
     read_until(fd, &blank, &req->version);
 
@@ -78,7 +69,11 @@ int get_hdr(const int fd, req_hdrs *req)
     char *field = NULL;
     char *value = NULL;
 
-    read_until(fd, &semicolon, &field);
+    if (read_until(fd, &semicolon, &field) == 0) {
+
+        return -1;
+
+    }
     read_until_eol(fd, &value);
 
     return eval_hdr(field, value, req);
@@ -98,7 +93,7 @@ int read_until(const int fd, const char *c, char **buffer)
     int size = 20;
     const int max = 80;
     char ch;
-    *buffer = malloc(sizeof(char) * size);
+    *buffer = calloc(size, sizeof(char));
 
     if (*buffer == NULL) {
 
@@ -156,7 +151,7 @@ int read_until(const int fd, const char *c, char **buffer)
 
             }
 
-            /**buffer[count] = ch;*/
+            (*buffer)[count] = ch;
             ++count;
 
         }
@@ -175,7 +170,7 @@ int read_until(const int fd, const char *c, char **buffer)
 
     }
 
-    *buffer[count] = '\0';
+    (*buffer)[count] = '\0';
 
     return count;
 
@@ -190,27 +185,35 @@ int read_until_eol(const int fd, char **buffer)
 {
 
     ssize_t r;
-    ssize_t size = 0;
+    int count = 0;
+    int size = 20;
+    const int max = 80;
     char ch;
-    *buffer = malloc(sizeof(char) * 20);
-    strcpy(*buffer, "anyString");
-    return 1;
+    *buffer = calloc(size, sizeof(char));
+
+    if (*buffer == NULL) {
+
+        return -1;
+
+    }
+    return 0;
 
     while ((r = read(fd, &ch, sizeof(char))) != 0) {
 
         if(r == -1) {
 
+            perror ("server->read_until");
             return -1;
 
         }
 
         if (ch == '\r') {
 
-            if ((r = read(fd, &ch, sizeof(char))) != 0) {
+            if ((r = read(fd, &ch, sizeof(char))) == 1) {
 
                 if (ch == '\n') {
 
-                    return 0;
+                    break;
 
                 }
 
@@ -220,36 +223,47 @@ int read_until_eol(const int fd, char **buffer)
 
         else {
 
-            if (size >= sizeof(buffer) / sizeof(char)) {
+            if (count >= max) {
 
-                if ((*buffer = realloc(*buffer, size * 2)) < 0) {
+                break;
 
-                    exit(0);
+            }
+
+            if (count >= size) {
+
+                size = (count * 2) > max ? max : count * 2;
+                *buffer = realloc(*buffer, sizeof(char) * size);
+
+                if (*buffer == NULL) {
+
+                    return -1;
 
                 }
 
             }
 
-            *buffer[size] = ch;
-            ++size;
+            (*buffer)[count] = ch;
+            ++count;
 
         }
 
     }
 
-    if(size >= (sizeof(*buffer) / sizeof(char))) {
+    if(count >= size) {
 
-        if((*buffer = realloc(*buffer, size + 1)) < 0) {
+        ++size;
+        *buffer = realloc(*buffer, sizeof(char) * size);
+        if (*buffer == NULL) {
 
-            exit(0);
+            return -1;
 
         }
 
     }
 
-    *buffer[size] = '\0';
+    (*buffer)[count] = '\0';
 
-    return 0;
+    return count;
 
 }
 
