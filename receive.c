@@ -196,7 +196,6 @@ int read_until_eol(const int fd, char **buffer)
         return -1;
 
     }
-    return 0;
 
     while ((r = read(fd, &ch, sizeof(char))) != 0) {
 
