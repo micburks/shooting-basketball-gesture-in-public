@@ -174,7 +174,6 @@ int open_connection(char *port) {
         int pid = fork();
         if (pid == -1) {
 
-            printf("what the fork");
             fprintf(stderr, "server: fork failed\n");
             exit(1);
 
@@ -207,7 +206,6 @@ int open_connection(char *port) {
             /*
              * parent does not need connection fd 
              */
-            printf("parent");
             close(new_fd);
 
         }
