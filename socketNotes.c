@@ -6,10 +6,10 @@ struct addrinfo {
   int ai_socktype;
   int ai_protocol;
   size_t ai_addrlen;
-  struct sockaddr *ai_addr;
-  char *ai_cannonname;
+  struct sockaddr* ai_addr;
+  char* ai_cannonname;
 
-  struct addrinfo *ai_next;
+  struct addrinfo* ai_next;
 };
 
 // load up a bit, then call
@@ -55,25 +55,25 @@ struct sockaddr_storage {
 // check to see if ss_family is AF_INET or IF_INET6
 // then cast it to a struct sockaddr_in or struct sockaddr_in6
 
-struct sockaddr_in sa;   // IPv4
-struct sockaddr_in6 sa6; // IPv6
+struct sockaddr_in sa;    // IPv4
+struct sockaddr_in6 sa6;  // IPv6
 
 // presentation to network function -- convert ip address to binary
 // representation check to make sure these calls return a result greater than 0
 // -1 = error
 // 0 = address messed up
-inet_pton(AF_INET, "192.0.2.1", &(sa.sin_addr));                // IPv4
-inet_pton(AF_INET6, "2001:db8:63b3:1::3490", &(sa6.sin6_addr)); // IPv6
+inet_pton(AF_INET, "192.0.2.1", &(sa.sin_addr));                 // IPv4
+inet_pton(AF_INET6, "2001:db8:63b3:1::3490", &(sa6.sin6_addr));  // IPv6
 
 // network to presentation function -- convert binary to ip address
 // IPv4
 char ip4[INET_ADDRSTRLEN];
-struct sockaddr_in sa; // ...loaded
+struct sockaddr_in sa;  // ...loaded
 inet_ntop(AF_INET, &(sa.sin_addr), ip4, INET_ADDRSTRLEN);
 printf("IPv4 address is: %s\n", ip4);
 // IPv6
 char ip6[INET6_ADDRSTRLEN];
-struct sockaddr_in6 sa6; // ...loaded
+struct sockaddr_in6 sa6;  // ...loaded
 inet_ntop(AF_INET6, &(sa6.sin6_addr), ip6, INET6_ADDRSTRLEN);
 printf("IPv6 address is: %s\n", ip6);
 
@@ -81,8 +81,8 @@ printf("IPv6 address is: %s\n", ip6);
 // for making it all ipv6
 struct sockaddr_in sa;
 struct sockaddr_in6 sa6;
-sa.sin_addr.s_addr = INADDR_ANY; // use my IPv4 address
-sa6.sin6_addr = in6addr_any;     // use my IPv6 address
+sa.sin_addr.s_addr = INADDR_ANY;  // use my IPv4 address
+sa6.sin6_addr = in6addr_any;      // use my IPv6 address
 
 struct in6_addr ia6 = IN6ADDR_ANY_INIT;
 
@@ -99,18 +99,19 @@ getnameinfo();
 #include <sys/socket.h>
 #include <sys/types.h>
 
-int getaddrinfo(const char *node,    // e.g. "www.example.com" or IP
-                const char *service, // e.g. "http" or port number
-                const struct addrinfo *hints, struct addrinfo **res);
+int getaddrinfo(const char* node,     // e.g. "www.example.com" or IP
+                const char* service,  // e.g. "http" or port number
+                const struct addrinfo* hints,
+                struct addrinfo** res);
 // example use -- listen on host's IP port 3490 (no listening or network setup)
 int status;
 struct addrinfo hints;
-struct addrinfo *servinfo;
+struct addrinfo* servinfo;
 
-memset(&hints, 0, sizeof hints); // make sure struct is empty
-hints.ai_family = AF_UNSPEC;     // don't care if v4 or v6
-hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
-hints.ai_flags = AI_PASSIVE;     // fill in my ip for me
+memset(&hints, 0, sizeof hints);  // make sure struct is empty
+hints.ai_family = AF_UNSPEC;      // don't care if v4 or v6
+hints.ai_socktype = SOCK_STREAM;  // TCP stream sockets
+hints.ai_flags = AI_PASSIVE;      // fill in my ip for me
 
 if ((status = getaddrinfo(NULL, "3490", &hints, &servinfo)) != 0) {
   fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
@@ -122,7 +123,7 @@ if ((status = getaddrinfo(NULL, "3490", &hints, &servinfo)) != 0) {
 
 // servinfo now points to a linked list of 1 or more struct addrinfos
 // do everything until you dont' need servinfo anymore
-freeaddrinfo(servinfo); // free the linked list
+freeaddrinfo(servinfo);  // free the linked list
 
 // socket()
 #include <sys/socket.h>
@@ -136,8 +137,9 @@ struct addrinfo hints, *res;
 // do error checking
 // walk the 'res' linked list looking for valid entries instead of assuming
 // first one is good
-s = socket(res->ai_family, res->ai_socktype,
-           res->ai_protocol); // return socket descriptor or -1 on error
+s = socket(res->ai_family,
+           res->ai_socktype,
+           res->ai_protocol);  // return socket descriptor or -1 on error
 
 // bind()
 // associates the socket with a port on your local machine
@@ -145,7 +147,7 @@ s = socket(res->ai_family, res->ai_socktype,
 // socket descriptor
 #include <sys/socket.h>
 #include <sys/types.h>
-int bind(int sockfd, struct sockaddr *my_addr, int addrlen);
+int bind(int sockfd, struct sockaddr* my_addr, int addrlen);
 
 // example use -- after everything up through socket() call
 bind(sockfd, res->ai_addr, res->ai_addrlen);
@@ -172,7 +174,7 @@ if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
 // connect()
 #include <sys/socket.h>
 #include <sys/types.h>
-int connect(int sockfd, struct sockaddr *serv_addr, int addrlen);
+int connect(int sockfd, struct sockaddr* serv_addr, int addrlen);
 
 // example -- after call to socket (no call to bind in this example)
 connect(sockfd, res->ai_addr, res->ai_addrlen);
@@ -203,7 +205,7 @@ listen();
 // listening for more new connections the new one is ready to send() and recv()
 #include <sys/socket.h>
 #include <sys/types.h>
-int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+int accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen);
 // addr will usually be a pointer to a local struct sockaddr_storage
 // this is where the info about the incoming connection will go
 //  (with it you can determine which host is calling you from which port)
@@ -214,7 +216,7 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 
 // example call after listen()
 addr_size = sizeof their_addr;
-new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size);
+new_fd = accept(sockfd, (struct sockaddr*)&their_addr, &addr_size);
 // if you're only getting a single connection ever,
 //  you can close() the listening sockfd to prevent more incoming connections on
 //  the same port, if desired
@@ -223,13 +225,13 @@ new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size);
 // send() and recv()
 // can use for stream sockets or connected datagram sockets
 //  (regular unconnected datagram sockets will need sendto() and recvfrom())
-int send(int sockfd, const void *msg, int len, int flags);
+int send(int sockfd, const void* msg, int len, int flags);
 // msg is a pointer to the data you want to send
 // len is the length of the data in bytes
 // set flags to 0 (see man page on send() from info concerning flags)
 
 // example
-char *msg = "lkjsdflak";
+char* msg = "lkjsdflak";
 int len, bytes_sent;
 len = strlen(msg);
 bytes_sent = send(sockfd, msg, len, 0);
@@ -240,7 +242,7 @@ bytes_sent = send(sockfd, msg, len, 0);
 // if packet is small (< 1K or so), it will probably manage to send the whole
 // thing at once -1 returned on error and errno set to error number
 
-int recv(int sockfd, void *buf, int len, int flags);
+int recv(int sockfd, void* buf, int len, int flags);
 // read into buf, len is max length of the buffer, flags can again be set to 0
 // returns the number of bytes actually read into the buffer or -1 on error with
 // errno set if recv() returns 0, then the remote side has closed the connection
@@ -250,8 +252,12 @@ int recv(int sockfd, void *buf, int len, int flags);
 // for unconnected datagram sockets
 // these sockets are not connected to a remote host
 // we need to give the destination address before we send a packet
-int sendto(int sockfd, const void *msg, int len, unsigned int flags,
-           const struct sockaddr *to, socklen_t tolen);
+int sendto(int sockfd,
+           const void* msg,
+           int len,
+           unsigned int flags,
+           const struct sockaddr* to,
+           socklen_t tolen);
 // to is a pointer, probably to another struct sockaddr_in|struct
 // sockaddr_in6|struct sockaddr_storage (casted at the last minute)
 //  containes the destination IP address and port
@@ -259,8 +265,12 @@ int sendto(int sockfd, const void *msg, int len, unsigned int flags,
 // destination addrewss structure will be gotten from
 // getaddrinfo()|recvfrom()|filled out by hand returns the same as send()
 
-int recvfrom(int sockfd, void *buf, int len, unsigned int flags,
-             struct sockaddr *from, int *fromlen);
+int recvfrom(int sockfd,
+             void* buf,
+             int len,
+             unsigned int flags,
+             struct sockaddr* from,
+             int* fromlen);
 // from is pointer to local struct sockaddr_storage filled with IP addreess and
 // port of originating machine fromlen is pointer to local int initialized to
 // sizeof *from|sizeof(struct sockaddr_storage) on return fromlen will contain
@@ -293,7 +303,7 @@ int shutdown(int sockfd, int how);
 // getpeername()
 // will tell you who is at the other end of a connected stream socket
 #include <sys/socket.h>
-int getpeername(int sockfd, struct sockaddr *addr, int *addrlen);
+int getpeername(int sockfd, struct sockaddr* addr, int* addrlen);
 // addr will hold the information about the other side of the connection
 // returns -1 on error and sets errno
 // once you have their address, you can use inet_ntop(), getnameinfo(), or
@@ -304,7 +314,7 @@ int getpeername(int sockfd, struct sockaddr *addr, int *addrlen);
 // the name can then be used by gethostbyname() to determine the IP address of
 // your local machine
 #include <unistd.h>
-int gethostname(char *hostname, size_t size);
+int gethostname(char* hostname, size_t size);
 // hostname points to array of chars that will contain the hostname upon return
 // size is the length in bytes of the hostname array
 // returns 0 on success, -1 on error with errno set

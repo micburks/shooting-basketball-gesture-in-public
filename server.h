@@ -30,9 +30,8 @@
 #define BACKLOG 10
 
 typedef struct {
-
-  char *ext;
-  char *mediatype;
+  char* ext;
+  char* mediatype;
 
 } extn;
 
@@ -64,7 +63,7 @@ void sigchld_handler(const int s);
 /*
  * return address whether IPv4 or IPv6
  */
-void *get_in_addr(const struct sockaddr *sa);
+void* get_in_addr(const struct sockaddr* sa);
 
 /*
  * handle connection
@@ -75,6 +74,6 @@ int connection(const int fd);
  * perform all socket methods
  * create child processes upon accept()ing connections
  */
-int open_connection(char *port);
+int open_connection(char* port);
 
 #endif /* SBGIP_SERVER_H_ */

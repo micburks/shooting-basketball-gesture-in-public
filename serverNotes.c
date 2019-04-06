@@ -22,20 +22,18 @@
 #define BACKLOG 10
 
 typedef struct {
-
-  char *ext;
-  char *mediatype;
+  char* ext;
+  char* mediatype;
 
 } extn;
 
 typedef struct {
-
-  char *version;
-  char *status_code;
-  char *server;
-  char *last_modified;
-  char *content_type;
-  char *content_length;
+  char* version;
+  char* status_code;
+  char* server;
+  char* last_modified;
+  char* content_type;
+  char* content_length;
 
 } rspn_hdr;
 
@@ -59,36 +57,30 @@ extn extensions[] = {{"gif", "image/gif"},
 
 /* for reaping zombie children */
 void sigchld_handler(const int s) {
-
   while (waitpid(-1, NULL, WNOHANG) > 0)
     ;
 }
 
 /* return address whether IPv4 or IPv6 */
-void *get_in_addr(const struct sockaddr *sa) {
-
+void* get_in_addr(const struct sockaddr* sa) {
   if (sa->sa_family == AF_INET) {
-
-    return &(((struct sockaddr_in *)sa)->sin_addr);
+    return &(((struct sockaddr_in*)sa)->sin_addr);
   }
 
-  return &(((struct sockaddr_in6 *)sa)->sin6_addr);
+  return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
 /* print error */
 /* might actually fail because it is another call after error is met */
-void error(const char *msg) {
-
+void error(const char* msg) {
   perror(msg);
   exit(1);
 }
 
 /* send a particalar message */
-int send_msg(int fd, char *msg) {
-
+int send_msg(int fd, char* msg) {
   int m_len = strlen(msg);
   if (send(fd, msg, m_len, 0) == -1) {
-
     fprintf(stderr, "server: send failed");
   }
 
@@ -97,23 +89,19 @@ int send_msg(int fd, char *msg) {
 
 /* will be called for each file */
 /* no return -- errors will be sent by subsequent functions */
-int send_code(const int fd, char *code, const char *file) {
-
+int send_code(const int fd, char* code, const char* file) {
   printf("send code");
 
   int file_fd = f_open(file);
   if (file_fd == 0) {
-
     printf("code changed");
     code = "404";
   }
 
   if (strcmp(code, "200") == 0) {
-
     int file_size = f_size(file_fd);
 
     if (file_size == -1) {
-
       printf("no size");
       fprintf(stderr, "no size of fd: %d", file_fd);
       return -1;
@@ -122,7 +110,7 @@ int send_code(const int fd, char *code, const char *file) {
     char len_buffer[20];
     sprintf(len_buffer, "%d", file_size);
 
-    char *content_length = "Content-Length: ";
+    char* content_length = "Content-Length: ";
     strcat(content_length, len_buffer);
     strcat(content_length, "\r\n\r\n");
 
@@ -137,15 +125,14 @@ int send_code(const int fd, char *code, const char *file) {
   }
 
   else if (strcmp(code, "404") == 0) {
-
-    char *msg404 =
+    char* msg404 =
         "<html><head><title>404 Not Found</head></title><body><p>404 Not "
         "Found: The requested resource could not be found!</p></body></html>";
     int len = strlen(msg404);
     char len_buffer[20];
     sprintf(len_buffer, "%d", len);
 
-    char *content_length = "Content-Length: ";
+    char* content_length = "Content-Length: ";
     strcat(content_length, len_buffer);
     strcat(content_length, "\r\n\r\n");
 
@@ -165,7 +152,6 @@ int send_code(const int fd, char *code, const char *file) {
 
 /* send an entire file */
 int send_file(const int fd, const int file_fd, int file_size) {
-
   printf("send file");
   size_t total_bytes_sent = 0;
   ssize_t bytes_sent;
@@ -174,9 +160,7 @@ int send_file(const int fd, const int file_fd, int file_size) {
 
     if (bytes_sent =
             sendfile(fd, file_fd, 0, file_size - total_bytes_sent) <= 0) {
-
       if (errno == EINTR || errno == EAGAIN) {
-
         continue;
       }
 
@@ -194,11 +178,9 @@ int send_file(const int fd, const int file_fd, int file_size) {
 }
 
 /* return size of file if opened -- 0 on unopened, -1 on size error */
-int f_open(const char *file) {
-
+int f_open(const char* file) {
   int file_fd = open(file, O_RDONLY);
   if (file_fd == -1) {
-
     fprintf(stderr, "could not open %s", file);
     return 0;
   }
@@ -208,10 +190,8 @@ int f_open(const char *file) {
 
 /* return the size of a file -- -1 on error */
 int f_size(const int file_fd) {
-
   struct stat stat_struct;
   if (fstat(file_fd, &stat_struct) == -1) {
-
     fprintf(stderr, "server: open error");
     return -1;
   }
@@ -221,16 +201,14 @@ int f_size(const int file_fd) {
 
 /* handle connection */
 int connection(const int fd) {
-
   fprintf(stdout, "connection");
-  char *file = "index.html";
+  char* file = "index.html";
   send_code(fd, "200", file);
   close(fd);
   return 0;
 }
 
-int main(int argc, char **argv) {
-
+int main(int argc, char** argv) {
   int sockfd, new_fd;
   struct addrinfo hints, *servinfo, *p;
   struct sockaddr_storage their_addr;
@@ -246,27 +224,22 @@ int main(int argc, char **argv) {
   hints.ai_flags = AI_PASSIVE;
 
   if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
-
     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
     return 1;
   }
 
   /* loop through all results and bind to the first possible one */
   for (p = servinfo; p != NULL; p = p->ai_next) {
-
     if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-
       perror("server->socket");
       continue;
     }
 
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
-
       error("server: setsockopt");
     }
 
     if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-
       close(sockfd);
       perror("server->bind");
       continue;
@@ -276,7 +249,6 @@ int main(int argc, char **argv) {
   }
 
   if (p == NULL) {
-
     fprintf(stderr, "server: failed to bind\n");
     return 2;
   }
@@ -285,7 +257,6 @@ int main(int argc, char **argv) {
   freeaddrinfo(servinfo);
 
   if (listen(sockfd, BACKLOG) == -1) {
-
     error("server: listen");
   }
 
@@ -294,7 +265,6 @@ int main(int argc, char **argv) {
   sigemptyset(&sa.sa_mask);
   sa.sa_flags = SA_RESTART;
   if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-
     error("server: sigaction");
   }
 
@@ -303,23 +273,20 @@ int main(int argc, char **argv) {
 
   /* accept loop */
   while (1) {
-
     sin_size = sizeof their_addr;
-    new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+    new_fd = accept(sockfd, (struct sockaddr*)&their_addr, &sin_size);
 
     if (new_fd == -1) {
-
       perror("server->accept");
       continue;
     }
 
-    inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr),
+    inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr*)&their_addr),
               s, sizeof s);
     printf("server: got connection from %s\n", s);
 
     int pid = fork();
     if (pid == -1) {
-
       printf("what the fork");
       error("server: fork failed");
 
@@ -327,7 +294,6 @@ int main(int argc, char **argv) {
 
     /* this is child process */
     else if (pid == 0) {
-
       printf("child");
       /* child does not need socket */
       close(sockfd);
@@ -341,7 +307,6 @@ int main(int argc, char **argv) {
     }
 
     else {
-
       printf("parent\n");
       close(new_fd);
     }

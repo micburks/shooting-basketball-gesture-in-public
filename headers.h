@@ -11,12 +11,11 @@
  * response headers
  */
 typedef struct {
-
-  char *version;
-  char *server;
+  char* version;
+  char* server;
   int status_code;
 
-  char *content_type;
+  char* content_type;
   off_t content_length;
   time_t last_modified;
 
@@ -38,22 +37,21 @@ typedef enum {
  * request headers
  */
 typedef struct {
-
   /* line 1 */
   method request_method;
-  char *resource;
-  char *version;
+  char* resource;
+  char* version;
 
-  char *host;
-  char *from;
-  char *user_agent;
+  char* host;
+  char* from;
+  char* user_agent;
 
-  char *accept;
+  char* accept;
   /*
   char *accept_charset;
   */
-  char *accept_encoding;
-  char *accept_language;
+  char* accept_encoding;
+  char* accept_language;
   /*
   char *accept_ranges;
   */
@@ -63,13 +61,13 @@ typedef struct {
   char *allow;
   char *authorization;
   */
-  char *cache_control;
+  char* cache_control;
   /*
   char *cache_extension;
   */
 
-  char *cookie;
-  char *connection;
+  char* cookie;
+  char* connection;
   /*
   char *content_encoding;
   char *content_language;
@@ -92,22 +90,22 @@ typedef struct {
   char *proxy_authenticate;
   */
 
-  char *msg_body;
+  char* msg_body;
 
 } req_hdrs;
 
-void init_resp_headers(resp_hdrs *resp);
+void init_resp_headers(resp_hdrs* resp);
 
-void init_req_headers(req_hdrs *req);
+void init_req_headers(req_hdrs* req);
 
-char *status_msg(const int code);
+char* status_msg(const int code);
 
-void datetime(const time_t time, char *buf);
+void datetime(const time_t time, char* buf);
 
-int set_method(char *method, req_hdrs *req);
+int set_method(char* method, req_hdrs* req);
 
-char *string_method(const req_hdrs *req);
+char* string_method(const req_hdrs* req);
 
-void print_hdrs(const req_hdrs *req);
+void print_hdrs(const req_hdrs* req);
 
 #endif /* SBGIP_HEADERS_H_ */
