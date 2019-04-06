@@ -1,6 +1,8 @@
 
 #include <netdb.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -28,7 +30,7 @@ int main(int argc, char** argv) {
   // do everything until you dont' need servinfo anymore
 
   int s;
-  struct addrinfo hints, *res;
+  struct addrinfo* res;
 
   // walk the 'res' linked list looking for valid entries instead of assuming
   // first one is good return socket descriptor or -1 on error
