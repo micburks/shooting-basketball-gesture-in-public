@@ -5,15 +5,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   int status;
   struct addrinfo hints;
-  struct addrinfo *servinfo;
+  struct addrinfo* servinfo;
 
-  memset(&hints, 0, sizeof hints); // make sure struct is empty
-  hints.ai_family = AF_UNSPEC;     // don't care if v4 or v6
-  hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
-  hints.ai_flags = AI_PASSIVE;     // fill in my ip for me
+  memset(&hints, 0, sizeof hints);  // make sure struct is empty
+  hints.ai_family = AF_UNSPEC;      // don't care if v4 or v6
+  hints.ai_socktype = SOCK_STREAM;  // TCP stream sockets
+  hints.ai_flags = AI_PASSIVE;      // fill in my ip for me
 
   if ((status = getaddrinfo(NULL, "3490", &hints, &servinfo)) != 0) {
     fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
@@ -63,17 +63,17 @@ int main(int argc, char **argv) {
   }
 
   addr_size = sizeof their_addr;
-  new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size);
+  new_fd = accept(sockfd, (struct sockaddr*)&their_addr, &addr_size);
 
-  int send(int sockfd, const void *msg, int len, int flags);
+  int send(int sockfd, const void* msg, int len, int flags);
 
-  char *msg = "lkjsdflak";
+  char* msg = "lkjsdflak";
   int len, bytes_sent;
   len = strlen(msg);
   bytes_sent = send(sockfd, msg, len, 0);
 
   close(sockfd);
-  freeaddrinfo(servinfo); // free the linked list
+  freeaddrinfo(servinfo);  // free the linked list
 
   return 0;
 }

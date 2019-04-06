@@ -8,10 +8,8 @@
 
 int open_connection();
 
-int main(int argc, char **argv) {
-
+int main(int argc, char** argv) {
   if (argc < 2) {
-
     printf("Usage: server <PORT>\n");
     exit(1);
   }

@@ -3,18 +3,20 @@
  */
 
 #include <string.h>
-#include <sys/sendfile.h>
+// #include <sys/sendfile.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/uio.h>
 
 #include "send.h"
 
 /*
  * send a particalar message
  */
-int send_msg(int fd, char *msg) {
-
+int send_msg(int fd, char* msg) {
   int m_len = strlen(msg);
   if (send(fd, msg, m_len, 0) == -1) {
-
     fprintf(stderr, "server: send failed");
   }
 
@@ -25,55 +27,46 @@ int send_msg(int fd, char *msg) {
  * will be called for each file
  * no return -- errors will be sent by subsequent functions
  */
-int respond(const int fd, const char *file) {
-
+int respond(const int fd, const char* file) {
   resp_hdrs hdrs;
   init_resp_headers(&hdrs);
   int file_fd;
   off_t file_size;
 
   if (file == NULL) {
-
     fprintf(stderr, "file not specified\n");
     hdrs.status_code = 404;
 
   }
 
   else {
-
     file_fd = f_open(file);
     if (file_fd == -1) {
-
       fprintf(stderr, "file not found\n");
       hdrs.status_code = 404;
 
     } else {
-
       hdrs.status_code = 200;
     }
 
     file_size = f_size(file_fd);
     if (file_size == -1) {
-
       fprintf(stderr, "file size error\n");
       hdrs.status_code = 404;
     }
   }
 
   if (file != NULL) {
-
     hdrs.content_length = file_size;
     hdrs.last_modified = f_last_mod(file_fd);
     send_headers(fd, &hdrs);
   }
 
   if (hdrs.status_code != 404) {
-
     send_file(fd, file_fd, file_size);
 
   } else {
-
-    char *msg404 =
+    char* msg404 =
         "<html><head><title>404 Not Found</head></title><body><p>404 Not "
         "Found: The requested resource could not be found!</p></body></html>";
     send_msg(fd, msg404);
@@ -86,26 +79,25 @@ int respond(const int fd, const char *file) {
  * send an entire file
  */
 int send_file(const int fd, const int file_fd, const off_t file_size) {
-
   size_t total_bytes_sent = 0;
-  ssize_t bytes_sent;
+  ssize_t bytes_sent = 0;
+  off_t* bytes_to_send = malloc(sizeof(*bytes_to_send));
+  struct sf_hdtr* sf = malloc(sizeof(*sf));
+
   while (total_bytes_sent < file_size) {
+    *bytes_to_send = file_size - total_bytes_sent;
+    bytes_sent = sendfile(fd, file_fd, 0, bytes_to_send, sf, 0);
 
-    if ((bytes_sent = sendfile(fd, file_fd, 0, file_size - total_bytes_sent)) <=
-        0) {
-
+    if (bytes_sent <= 0) {
       if (errno == EINTR || errno == EAGAIN) {
-
         continue;
       }
-
       perror("server->sendfile");
       return -1;
     }
 
     total_bytes_sent += bytes_sent;
   }
-
   /*
    * never reached
    * perror will say success and return -1
@@ -116,8 +108,7 @@ int send_file(const int fd, const int file_fd, const off_t file_size) {
 /*
  * load and send headers
  */
-int send_headers(const int fd, const resp_hdrs *hdrs) {
-
+int send_headers(const int fd, const resp_hdrs* hdrs) {
   /* HTTP/1.1 200 OK  */
   char hbuf[100] = "HTTP/";
   strcat(hbuf, hdrs->version);
