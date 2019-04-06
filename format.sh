@@ -1,2 +1,2 @@
 #!/bin/bash
-clang-format -i --style=chromium *.c *.h
+clang-format -i --style=chromium ./src/*
