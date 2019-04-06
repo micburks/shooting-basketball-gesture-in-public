@@ -1,27 +1,20 @@
-CC=gcc
-CFLAGS=-c -Wall -O3
-EXEC=server
+TARGET ?= a.out
+SRC_DIRS ?= ./src
 
-all: main.o server.o send.o receive.o headers.o file.o
-	$(CC) main.o server.o send.o receive.o headers.o file.o -o $(EXEC)
+SRCS := $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s)
+OBJS := $(addsuffix .o,$(basename $(SRCS)))
+DEPS := $(OBJS:.o=.d)
 
-main.o: main.c
-	$(CC) $(CFLAGS) main.c
+INC_DIRS := $(shell find $(SRC_DIRS) -type d)
+INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-server.o: server.c server.h send.h headers.h file.h
-	$(CC) $(CFLAGS) server.c
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
 
-send.o: send.c send.h headers.h file.h
-	$(CC) $(CFLAGS) send.c
+$(TARGET): $(OBJS)
+	$(CC) $(LDFLAGS) $(OBJS) -o $@ $(LOADLIBES) $(LDLIBS)
 
-receive.o: receive.c receive.h headers.h
-	$(CC) $(CFLAGS) receive.c
-
-headers.o: headers.c headers.h
-	$(CC) $(CFLAGS) headers.c
-
-file.o: file.c file.h
-	$(CC) $(CFLAGS) file.c
-
+.PHONY: clean
 clean:
-	rm -rf *o $(EXEC)
+	$(RM) $(TARGET) $(OBJS) $(DEPS)
+
+-include $(DEPS)
